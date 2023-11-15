@@ -11,6 +11,6 @@ func NewRouteDeploymentController(deploymentController DeploymentController) Dep
 }
 
 func (dc *DeploymentRouteController) DeploymentRoute(rg *gin.RouterGroup) {
-	router := rg.Group("deployments")
+	router := rg.Group(":namespace/deployments")
 	router.GET("", dc.deploymentController.ListDeployment)
 }

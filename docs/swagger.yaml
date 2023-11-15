@@ -4716,9 +4716,15 @@ info:
   title: Kubernetes API
   version: "1.0"
 paths:
-  /apis/apps/v1/deployments:
+  /apis/apps/v1/{namespace}/deployments:
     get:
       description: Return list of deployment.
+      parameters:
+      - description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
       produces:
       - application/json
       responses:

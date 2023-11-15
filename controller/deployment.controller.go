@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	v1 "k8s.io/api/apps/v1"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"log"
@@ -35,15 +34,17 @@ func NewDeploymentController(kubeConfig *K8sClient) DeploymentController {
 	return DeploymentController{K8sClient: kubeConfig}
 }
 
-// ListDeployment FindAllDeployment godoc
+// ListDeployment godoc
 // @Summary			Get the List of default namespace deployment.
 // @Description		Return list of deployment.
 // @Tags			deployment
-// @Router			/apis/apps/v1/deployments [get]
+// @Router			/apis/apps/v1/{namespace}/deployments [get]
+// @Param 			namespace path string true "Namespace"
 // @Response		200 {object} DeploymentListResponse
 // @Produce			application/json
 func (dc *DeploymentController) ListDeployment(ctx *gin.Context) {
-	deployments, err := dc.Client.AppsV1().Deployments(apiv1.NamespaceDefault).List(context.TODO(), metav1.ListOptions{})
+	namespace := ctx.Param("namespace")
+	deployments, err := dc.Client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"data": make([]v1.DeploymentList, 0), "status": http.StatusBadRequest, "err": err})
 		log.Fatal(err)
@@ -51,7 +52,7 @@ func (dc *DeploymentController) ListDeployment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": deployments, "status": http.StatusOK, "err": nil})
 }
 
-// GetDeployment FindDeploymentByName godoc
+// GetDeployment godoc
 // @Summary			Get deployment by name.
 // @Description		Return deployment.
 // @Tags			deployment

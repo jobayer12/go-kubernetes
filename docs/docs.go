@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/apis/apps/v1/deployments": {
+        "/apis/apps/v1/{namespace}/deployments": {
             "get": {
                 "description": "Return list of deployment.",
                 "produces": [
@@ -25,6 +25,15 @@ const docTemplate = `{
                     "deployment"
                 ],
                 "summary": "Get the List of default namespace deployment.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
