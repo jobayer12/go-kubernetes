@@ -15,4 +15,6 @@ func (dc *DeploymentRouteController) DeploymentRoute(rg *gin.RouterGroup) {
 	router.GET("", dc.deploymentController.ListDeployment)
 	router.GET(":name", dc.deploymentController.GetDeployment)
 	router.DELETE(":name", dc.deploymentController.DeleteDeployment)
+	router.PUT(":name/:replica", dc.deploymentController.UpdateDeploymentReplica)
+	router.GET(":name/scale", dc.deploymentController.ReadDeploymentScale)
 }

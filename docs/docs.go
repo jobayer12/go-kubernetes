@@ -115,6 +115,85 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/apis/apps/v1/{namespace}/deployments/{name}/scale": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployment"
+                ],
+                "summary": "Scale deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "default",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ScaleDeploymentResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/apis/apps/v1/{namespace}/deployments/{name}/{replica}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployment"
+                ],
+                "summary": "Update Deployment Replica",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "default",
+                        "description": "Namespace",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Replica",
+                        "name": "replica",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ScaleDeploymentResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -151,6 +230,20 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/v1.DeploymentList"
+                },
+                "err": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controller.ScaleDeploymentResponse": {
+            "type": "object",
+            "properties": {
+                "Data": {
+                    "$ref": "#/definitions/v1.Scale"
                 },
                 "err": {
                     "type": "string"
@@ -3207,6 +3300,43 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.Scale": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ObjectMeta"
+                        }
+                    ]
+                },
+                "spec": {
+                    "description": "spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ScaleSpec"
+                        }
+                    ]
+                },
+                "status": {
+                    "description": "status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ScaleStatus"
+                        }
+                    ]
+                }
+            }
+        },
         "v1.ScaleIOVolumeSource": {
             "type": "object",
             "properties": {
@@ -3252,6 +3382,28 @@ const docTemplate = `{
                 },
                 "volumeName": {
                     "description": "volumeName is the name of a volume already created in the ScaleIO system\nthat is associated with this volume source.",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.ScaleSpec": {
+            "type": "object",
+            "properties": {
+                "replicas": {
+                    "description": "replicas is the desired number of instances for the scaled object.\n+optional",
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.ScaleStatus": {
+            "type": "object",
+            "properties": {
+                "replicas": {
+                    "description": "replicas is the actual number of observed instances of the scaled object.",
+                    "type": "integer"
+                },
+                "selector": {
+                    "description": "selector is the label query over pods that should match the replicas count. This is same\nas the label selector but in the string format to avoid introspection\nby clients. The string will be in the same format as the query-param syntax.\nMore info about label selectors: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/\n+optional",
                     "type": "string"
                 }
             }

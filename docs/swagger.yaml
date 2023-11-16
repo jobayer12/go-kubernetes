@@ -27,6 +27,15 @@ definitions:
       status:
         type: integer
     type: object
+  controller.ScaleDeploymentResponse:
+    properties:
+      Data:
+        $ref: '#/definitions/v1.Scale'
+      err:
+        type: string
+      status:
+        type: integer
+    type: object
   intstr.IntOrString:
     properties:
       intVal:
@@ -3694,6 +3703,44 @@ definitions:
           +optional
         type: string
     type: object
+  v1.Scale:
+    properties:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
+        type: string
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ObjectMeta'
+        description: |-
+          Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.
+          +optional
+      spec:
+        allOf:
+        - $ref: '#/definitions/v1.ScaleSpec'
+        description: |-
+          spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
+          +optional
+      status:
+        allOf:
+        - $ref: '#/definitions/v1.ScaleStatus'
+        description: |-
+          status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.
+          +optional
+    type: object
   v1.ScaleIOVolumeSource:
     properties:
       fsType:
@@ -3747,6 +3794,29 @@ definitions:
         description: |-
           volumeName is the name of a volume already created in the ScaleIO system
           that is associated with this volume source.
+        type: string
+    type: object
+  v1.ScaleSpec:
+    properties:
+      replicas:
+        description: |-
+          replicas is the desired number of instances for the scaled object.
+          +optional
+        type: integer
+    type: object
+  v1.ScaleStatus:
+    properties:
+      replicas:
+        description: replicas is the actual number of observed instances of the scaled
+          object.
+        type: integer
+      selector:
+        description: |-
+          selector is the label query over pods that should match the replicas count. This is same
+          as the label selector but in the string format to avoid introspection
+          by clients. The string will be in the same format as the query-param syntax.
+          More info about label selectors: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+          +optional
         type: string
     type: object
   v1.SeccompProfile:
@@ -4800,6 +4870,59 @@ paths:
           schema:
             $ref: '#/definitions/controller.DeploymentByNameResponse'
       summary: Get deployment by name.
+      tags:
+      - deployment
+  /apis/apps/v1/{namespace}/deployments/{name}/{replica}:
+    put:
+      parameters:
+      - default: default
+        description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Replica
+        in: path
+        name: replica
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.ScaleDeploymentResponse'
+      summary: Update Deployment Replica
+      tags:
+      - deployment
+  /apis/apps/v1/{namespace}/deployments/{name}/scale:
+    get:
+      parameters:
+      - default: default
+        description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.ScaleDeploymentResponse'
+      summary: Scale deployment
       tags:
       - deployment
 swagger: "2.0"
