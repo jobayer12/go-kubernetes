@@ -1,5 +1,23 @@
 basePath: /
 definitions:
+  controller.DeleteDeploymentResponse:
+    properties:
+      data:
+        type: boolean
+      err:
+        type: string
+      status:
+        type: integer
+    type: object
+  controller.DeploymentByNameResponse:
+    properties:
+      data:
+        $ref: '#/definitions/v1.Deployment'
+      err:
+        type: string
+      status:
+        type: integer
+    type: object
   controller.DeploymentListResponse:
     properties:
       data:
@@ -4720,7 +4738,8 @@ paths:
     get:
       description: Return list of deployment.
       parameters:
-      - description: Namespace
+      - default: default
+        description: Namespace
         in: path
         name: namespace
         required: true
@@ -4733,6 +4752,54 @@ paths:
           schema:
             $ref: '#/definitions/controller.DeploymentListResponse'
       summary: Get the List of default namespace deployment.
+      tags:
+      - deployment
+  /apis/apps/v1/{namespace}/deployments/{name}:
+    delete:
+      parameters:
+      - default: default
+        description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.DeleteDeploymentResponse'
+      summary: Delete deployment
+      tags:
+      - deployment
+    get:
+      description: Return deployment.
+      parameters:
+      - default: default
+        description: Namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.DeploymentByNameResponse'
+      summary: Get deployment by name.
       tags:
       - deployment
 swagger: "2.0"
