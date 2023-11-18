@@ -6,6 +6,7 @@ import (
 	_ "github.com/jobayer12/go-kubernetes/docs"
 	"github.com/jobayer12/go-kubernetes/module/deployment"
 	"github.com/jobayer12/go-kubernetes/module/namespace"
+	"github.com/jobayer12/go-kubernetes/module/pod"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"k8s.io/client-go/kubernetes"
@@ -26,6 +27,9 @@ var (
 
 	NamespaceController namespace.Controller
 	NamespaceRoute      namespace.Route
+
+	PodController pod.Controller
+	PodRoute      pod.Route
 )
 
 func getK8sClient() *K8sClient {
@@ -57,6 +61,9 @@ func init() {
 	NamespaceController = namespace.NewNamespaceController((*namespace.K8sClient)(client))
 	NamespaceRoute = namespace.NewNamespaceRoute(NamespaceController)
 
+	PodController = pod.NewPodController((*pod.K8sClient)(client))
+	PodRoute = pod.NewPodRoute(PodController)
+
 	server = gin.Default()
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -75,11 +82,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	apiAppsV1RouteGroup := server.Group("/apis/apps/v1")
-	DeploymentRouteController.DeploymentRoute(apiAppsV1RouteGroup)
+	deploymentRoute := server.Group("/apis/apps/v1/:namespace/deployments")
+	DeploymentRouteController.DeploymentRoute(deploymentRoute)
 
-	apiV1Route := server.Group("/api/v1")
-	NamespaceRoute.NamespaceRoute(apiV1Route)
+	apiV1 := server.Group("/api/v1")
+	{
+		namespaceGroup := apiV1.Group("namespaces")
+		NamespaceRoute.Route(namespaceGroup)
+		{
+			podRoute := namespaceGroup.Group(":namespace/pods")
+			PodRoute.Route(podRoute)
+		}
+	}
 
 	log.Fatal(server.Run(":8080"))
 }

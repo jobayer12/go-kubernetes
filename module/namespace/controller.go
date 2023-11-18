@@ -35,21 +35,3 @@ func (ns *Controller) ListNamespace(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, namespaces)
 }
-
-// GetNamespace
-// @Summary			Get namespace.
-// @Description		Return namespace.
-// @Tags			namespace
-// @Router			/api/v1/namespaces/{name} [get]
-// @Param 			name path string true "Namespace name"
-// @Response		200 {object} v1.Namespace
-// @Produce			application/json
-func (ns *Controller) GetNamespace(ctx *gin.Context) {
-	name := ctx.Param("name")
-	namespace, err := ns.Client.CoreV1().Namespaces().Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
-		return
-	}
-	ctx.JSON(http.StatusOK, namespace)
-}
