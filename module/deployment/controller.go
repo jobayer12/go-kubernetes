@@ -1,4 +1,4 @@
-package controller
+package deployment
 
 import (
 	"context"
@@ -11,40 +11,32 @@ import (
 	"strconv"
 )
 
-type DeploymentListResponse struct {
-	Status int64             `json:"status"`
-	Err    string            `json:"err"`
-	Data   v1.DeploymentList `json:"data"`
+type ListResponse struct {
+	v1.DeploymentList `json:",inline"`
 }
 
-type DeploymentByNameResponse struct {
-	Status int64         `json:"status"`
-	Err    string        `json:"err"`
-	Data   v1.Deployment `json:"data"`
+type GetDeploymentResponse struct {
+	v1.Deployment `json:",inline"`
 }
 
 type DeleteDeploymentResponse struct {
-	Status int64  `json:"status"`
-	Err    string `json:"err"`
-	Data   bool   `json:"data"`
+	bool `json:",inline"`
 }
 
 type ScaleDeploymentResponse struct {
-	Status int64               `json:"status"`
-	Err    string              `json:"err"`
-	Data   autoscalingv1.Scale `json:"Data"`
+	autoscalingv1.Scale `json:",inline"`
 }
 
 type K8sClient struct {
 	Client kubernetes.Interface
 }
 
-type DeploymentController struct {
+type Controller struct {
 	*K8sClient
 }
 
-func NewDeploymentController(kubeConfig *K8sClient) DeploymentController {
-	return DeploymentController{K8sClient: kubeConfig}
+func NewDeploymentController(kubeConfig *K8sClient) Controller {
+	return Controller{K8sClient: kubeConfig}
 }
 
 // ListDeployment godoc
@@ -53,15 +45,15 @@ func NewDeploymentController(kubeConfig *K8sClient) DeploymentController {
 // @Tags			deployment
 // @Router			/apis/apps/v1/{namespace}/deployments [get]
 // @Param 			namespace path string true "Namespace" default(default)
-// @Response		200 {object} DeploymentListResponse
+// @Response		200 {array} ListResponse
 // @Produce			application/json
-func (dc *DeploymentController) ListDeployment(ctx *gin.Context) {
+func (dc *Controller) ListDeployment(ctx *gin.Context) {
 	namespace := ctx.Param("namespace")
 	deployments, err := dc.Client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": make([]v1.DeploymentList, 0), "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": deployments, "status": http.StatusOK, "err": nil})
+	ctx.JSON(http.StatusOK, deployments)
 }
 
 // GetDeployment godoc
@@ -71,18 +63,17 @@ func (dc *DeploymentController) ListDeployment(ctx *gin.Context) {
 // @Router			/apis/apps/v1/{namespace}/deployments/{name} [get]
 // @Param 			namespace path string true "Namespace" default(default)
 // @Param 			name path string true "Deployment name"
-// @Response		200 {object} DeploymentByNameResponse
+// @Response		200 {object} GetDeploymentResponse
 // @Produce			application/json
-func (dc *DeploymentController) GetDeployment(ctx *gin.Context) {
+func (dc *Controller) GetDeployment(ctx *gin.Context) {
 	namespace := ctx.Param("namespace")
 	name := ctx.Param("name")
 	result, err := dc.Client.AppsV1().Deployments(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": result, "status": http.StatusOK, "err": err})
+	ctx.JSON(http.StatusOK, result)
 }
 
 // DeleteDeployment
@@ -91,17 +82,17 @@ func (dc *DeploymentController) GetDeployment(ctx *gin.Context) {
 // @Router			/apis/apps/v1/{namespace}/deployments/{name} [delete]
 // @Param 			namespace path string true "Namespace" default(default)
 // @Param 			name path string true "Deployment name"
-// @Response		200 {object} DeleteDeploymentResponse
+// @response     	default {boolean}  boolean true
 // @Produce			application/json
-func (dc *DeploymentController) DeleteDeployment(ctx *gin.Context) {
+func (dc *Controller) DeleteDeployment(ctx *gin.Context) {
 	namespace := ctx.Param("namespace")
 	name := ctx.Param("name")
 	err := dc.Client.AppsV1().Deployments(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": false, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": true, "status": http.StatusOK, "err": err})
+	ctx.JSON(http.StatusOK, true)
 }
 
 // ReadDeploymentScale
@@ -112,15 +103,15 @@ func (dc *DeploymentController) DeleteDeployment(ctx *gin.Context) {
 // @Param 			name path string true "Deployment name"
 // @Response		200 {object} ScaleDeploymentResponse
 // @Produce			application/json
-func (dc *DeploymentController) ReadDeploymentScale(ctx *gin.Context) {
+func (dc *Controller) ReadDeploymentScale(ctx *gin.Context) {
 	namespace := ctx.Param("namespace")
 	name := ctx.Param("name")
 	scaleObj, err := dc.Client.AppsV1().Deployments(namespace).GetScale(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": scaleObj, "status": http.StatusOK, "err": nil})
+	ctx.JSON(http.StatusOK, scaleObj)
 }
 
 // UpdateDeploymentReplica
@@ -132,30 +123,30 @@ func (dc *DeploymentController) ReadDeploymentScale(ctx *gin.Context) {
 // @Param 			replica path string true "Replica"
 // @Response		200 {object} ScaleDeploymentResponse
 // @Produce			application/json
-func (dc *DeploymentController) UpdateDeploymentReplica(ctx *gin.Context) {
+func (dc *Controller) UpdateDeploymentReplica(ctx *gin.Context) {
 	namespace := ctx.Param("namespace")
 	name := ctx.Param("name")
 	replicaParam, err := strconv.ParseInt(ctx.Param("replica"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
 	scaleObj, err := dc.Client.AppsV1().Deployments(namespace).GetScale(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
 	replica := int32(replicaParam)
 	sd := *scaleObj
 	if sd.Spec.Replicas == replica || replica < 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": "No changes applied"})
+		ctx.JSON(http.StatusBadRequest, "No changes applied")
 		return
 	}
 	sd.Spec.Replicas = replica
 	scaleDeployment, err := dc.Client.AppsV1().Deployments(namespace).UpdateScale(context.Background(), name, &sd, metav1.UpdateOptions{})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "status": http.StatusBadRequest, "err": err})
+		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": scaleDeployment, "status": http.StatusOK, "err": nil})
+	ctx.JSON(http.StatusOK, scaleDeployment)
 }

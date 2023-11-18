@@ -9,6 +9,55 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
+        "/api/v1/namespaces": {
+            "get": {
+                "description": "Return list of namespace.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "namespace"
+                ],
+                "summary": "Get the List of namespace.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.NamespaceList"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/namespaces/{name}": {
+            "get": {
+                "description": "Return namespace.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "namespace"
+                ],
+                "summary": "Get namespace.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Namespace name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Namespace"
+                        }
+                    }
+                }
+            }
+        },
         "/apis/apps/v1/{namespace}/deployments": {
             "get": {
                 "description": "Return list of deployment.",
@@ -33,7 +82,10 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.DeploymentListResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/deployment.ListResponse"
+                            }
                         }
                     }
                 }
@@ -70,7 +122,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.DeploymentByNameResponse"
+                            "$ref": "#/definitions/deployment.GetDeploymentResponse"
                         }
                     }
                 }
@@ -101,10 +153,10 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "default": {
+                        "description": "",
                         "schema": {
-                            "$ref": "#/definitions/controller.DeleteDeploymentResponse"
+                            "type": "boolean"
                         }
                     }
                 }
@@ -140,7 +192,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.ScaleDeploymentResponse"
+                            "$ref": "#/definitions/deployment.ScaleDeploymentResponse"
                         }
                     }
                 }
@@ -183,7 +235,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.ScaleDeploymentResponse"
+                            "$ref": "#/definitions/deployment.ScaleDeploymentResponse"
                         }
                     }
                 }
@@ -191,59 +243,105 @@
         }
     },
     "definitions": {
-        "controller.DeleteDeploymentResponse": {
+        "deployment.GetDeploymentResponse": {
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "boolean"
-                },
-                "err": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
                     "type": "string"
                 },
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Standard object's metadata.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ObjectMeta"
+                        }
+                    ]
+                },
+                "spec": {
+                    "description": "Specification of the desired behavior of the Deployment.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.DeploymentSpec"
+                        }
+                    ]
+                },
                 "status": {
-                    "type": "integer"
+                    "description": "Most recently observed status of the Deployment.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.DeploymentStatus"
+                        }
+                    ]
                 }
             }
         },
-        "controller.DeploymentByNameResponse": {
+        "deployment.ListResponse": {
             "type": "object",
             "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.Deployment"
-                },
-                "err": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
                     "type": "string"
                 },
-                "status": {
-                    "type": "integer"
+                "items": {
+                    "description": "Items is the list of Deployments.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.Deployment"
+                    }
+                },
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Standard list metadata.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ListMeta"
+                        }
+                    ]
                 }
             }
         },
-        "controller.DeploymentListResponse": {
+        "deployment.ScaleDeploymentResponse": {
             "type": "object",
             "properties": {
-                "data": {
-                    "$ref": "#/definitions/v1.DeploymentList"
-                },
-                "err": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
                     "type": "string"
                 },
-                "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "controller.ScaleDeploymentResponse": {
-            "type": "object",
-            "properties": {
-                "Data": {
-                    "$ref": "#/definitions/v1.Scale"
-                },
-                "err": {
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
                     "type": "string"
                 },
+                "metadata": {
+                    "description": "Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ObjectMeta"
+                        }
+                    ]
+                },
+                "spec": {
+                    "description": "spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ScaleSpec"
+                        }
+                    ]
+                },
                 "status": {
-                    "type": "integer"
+                    "description": "status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ScaleStatus"
+                        }
+                    ]
                 }
             }
         },
@@ -963,34 +1061,6 @@
                 "DeploymentReplicaFailure"
             ]
         },
-        "v1.DeploymentList": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "items": {
-                    "description": "Items is the list of Deployments.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1.Deployment"
-                    }
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "description": "Standard list metadata.\n+optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ListMeta"
-                        }
-                    ]
-                }
-            }
-        },
         "v1.DeploymentSpec": {
             "type": "object",
             "properties": {
@@ -1496,6 +1566,15 @@
         },
         "v1.FieldsV1": {
             "type": "object"
+        },
+        "v1.FinalizerName": {
+            "type": "string",
+            "enum": [
+                "kubernetes"
+            ],
+            "x-enum-varnames": [
+                "FinalizerKubernetes"
+            ]
         },
         "v1.FlexVolumeSource": {
             "type": "object",
@@ -2005,6 +2084,164 @@
                 "server": {
                     "description": "server is the hostname or IP address of the NFS server.\nMore info: https://kubernetes.io/docs/concepts/storage/volumes#nfs",
                     "type": "string"
+                }
+            }
+        },
+        "v1.Namespace": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Standard object's metadata.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ObjectMeta"
+                        }
+                    ]
+                },
+                "spec": {
+                    "description": "Spec defines the behavior of the Namespace.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.NamespaceSpec"
+                        }
+                    ]
+                },
+                "status": {
+                    "description": "Status describes the current status of a Namespace.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.NamespaceStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1.NamespaceCondition": {
+            "type": "object",
+            "properties": {
+                "lastTransitionTime": {
+                    "description": "+optional",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "+optional",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "+optional",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status of the condition, one of True, False, Unknown.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/k8s_io_api_core_v1.ConditionStatus"
+                        }
+                    ]
+                },
+                "type": {
+                    "description": "Type of namespace controller condition.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.NamespaceConditionType"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1.NamespaceConditionType": {
+            "type": "string",
+            "enum": [
+                "NamespaceDeletionDiscoveryFailure",
+                "NamespaceDeletionContentFailure",
+                "NamespaceDeletionGroupVersionParsingFailure",
+                "NamespaceContentRemaining",
+                "NamespaceFinalizersRemaining"
+            ],
+            "x-enum-varnames": [
+                "NamespaceDeletionDiscoveryFailure",
+                "NamespaceDeletionContentFailure",
+                "NamespaceDeletionGVParsingFailure",
+                "NamespaceContentRemaining",
+                "NamespaceFinalizersRemaining"
+            ]
+        },
+        "v1.NamespaceList": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                    "type": "string"
+                },
+                "items": {
+                    "description": "Items is the list of Namespace objects in the list.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.Namespace"
+                    }
+                },
+                "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Standard list metadata.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.ListMeta"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1.NamespacePhase": {
+            "type": "string",
+            "enum": [
+                "Active",
+                "Terminating"
+            ],
+            "x-enum-varnames": [
+                "NamespaceActive",
+                "NamespaceTerminating"
+            ]
+        },
+        "v1.NamespaceSpec": {
+            "type": "object",
+            "properties": {
+                "finalizers": {
+                    "description": "Finalizers is an opaque list of values that must be empty to permanently remove object from storage.\nMore info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/\n+optional",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.FinalizerName"
+                    }
+                }
+            }
+        },
+        "v1.NamespaceStatus": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "description": "Represents the latest available observations of a namespace's current state.\n+optional\n+patchMergeKey=type\n+patchStrategy=merge",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.NamespaceCondition"
+                    }
+                },
+                "phase": {
+                    "description": "Phase is the current lifecycle phase of the namespace.\nMore info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.NamespacePhase"
+                        }
+                    ]
                 }
             }
         },
@@ -3291,43 +3528,6 @@
                 "user": {
                     "description": "User is a SELinux user label that applies to the container.\n+optional",
                     "type": "string"
-                }
-            }
-        },
-        "v1.Scale": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "description": "Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.\n+optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ObjectMeta"
-                        }
-                    ]
-                },
-                "spec": {
-                    "description": "spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.\n+optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ScaleSpec"
-                        }
-                    ]
-                },
-                "status": {
-                    "description": "status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.\n+optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1.ScaleStatus"
-                        }
-                    ]
                 }
             }
         },

@@ -1,40 +1,112 @@
 basePath: /
 definitions:
-  controller.DeleteDeploymentResponse:
+  deployment.GetDeploymentResponse:
     properties:
-      data:
-        type: boolean
-      err:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
         type: string
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ObjectMeta'
+        description: |-
+          Standard object's metadata.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+          +optional
+      spec:
+        allOf:
+        - $ref: '#/definitions/v1.DeploymentSpec'
+        description: |-
+          Specification of the desired behavior of the Deployment.
+          +optional
       status:
-        type: integer
+        allOf:
+        - $ref: '#/definitions/v1.DeploymentStatus'
+        description: |-
+          Most recently observed status of the Deployment.
+          +optional
     type: object
-  controller.DeploymentByNameResponse:
+  deployment.ListResponse:
     properties:
-      data:
-        $ref: '#/definitions/v1.Deployment'
-      err:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
         type: string
-      status:
-        type: integer
+      items:
+        description: Items is the list of Deployments.
+        items:
+          $ref: '#/definitions/v1.Deployment'
+        type: array
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ListMeta'
+        description: |-
+          Standard list metadata.
+          +optional
     type: object
-  controller.DeploymentListResponse:
+  deployment.ScaleDeploymentResponse:
     properties:
-      data:
-        $ref: '#/definitions/v1.DeploymentList'
-      err:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
         type: string
-      status:
-        type: integer
-    type: object
-  controller.ScaleDeploymentResponse:
-    properties:
-      Data:
-        $ref: '#/definitions/v1.Scale'
-      err:
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
         type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ObjectMeta'
+        description: |-
+          Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.
+          +optional
+      spec:
+        allOf:
+        - $ref: '#/definitions/v1.ScaleSpec'
+        description: |-
+          spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
+          +optional
       status:
-        type: integer
+        allOf:
+        - $ref: '#/definitions/v1.ScaleStatus'
+        description: |-
+          status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.
+          +optional
     type: object
   intstr.IntOrString:
     properties:
@@ -848,37 +920,6 @@ definitions:
     - DeploymentAvailable
     - DeploymentProgressing
     - DeploymentReplicaFailure
-  v1.DeploymentList:
-    properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      items:
-        description: Items is the list of Deployments.
-        items:
-          $ref: '#/definitions/v1.Deployment'
-        type: array
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        allOf:
-        - $ref: '#/definitions/v1.ListMeta'
-        description: |-
-          Standard list metadata.
-          +optional
-    type: object
   v1.DeploymentSpec:
     properties:
       minReadySeconds:
@@ -1479,6 +1520,12 @@ definitions:
     type: object
   v1.FieldsV1:
     type: object
+  v1.FinalizerName:
+    enum:
+    - kubernetes
+    type: string
+    x-enum-varnames:
+    - FinalizerKubernetes
   v1.FlexVolumeSource:
     properties:
       driver:
@@ -2039,6 +2086,153 @@ definitions:
           server is the hostname or IP address of the NFS server.
           More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs
         type: string
+    type: object
+  v1.Namespace:
+    properties:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
+        type: string
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ObjectMeta'
+        description: |-
+          Standard object's metadata.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+          +optional
+      spec:
+        allOf:
+        - $ref: '#/definitions/v1.NamespaceSpec'
+        description: |-
+          Spec defines the behavior of the Namespace.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+          +optional
+      status:
+        allOf:
+        - $ref: '#/definitions/v1.NamespaceStatus'
+        description: |-
+          Status describes the current status of a Namespace.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+          +optional
+    type: object
+  v1.NamespaceCondition:
+    properties:
+      lastTransitionTime:
+        description: +optional
+        type: string
+      message:
+        description: +optional
+        type: string
+      reason:
+        description: +optional
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/k8s_io_api_core_v1.ConditionStatus'
+        description: Status of the condition, one of True, False, Unknown.
+      type:
+        allOf:
+        - $ref: '#/definitions/v1.NamespaceConditionType'
+        description: Type of namespace controller condition.
+    type: object
+  v1.NamespaceConditionType:
+    enum:
+    - NamespaceDeletionDiscoveryFailure
+    - NamespaceDeletionContentFailure
+    - NamespaceDeletionGroupVersionParsingFailure
+    - NamespaceContentRemaining
+    - NamespaceFinalizersRemaining
+    type: string
+    x-enum-varnames:
+    - NamespaceDeletionDiscoveryFailure
+    - NamespaceDeletionContentFailure
+    - NamespaceDeletionGVParsingFailure
+    - NamespaceContentRemaining
+    - NamespaceFinalizersRemaining
+  v1.NamespaceList:
+    properties:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
+        type: string
+      items:
+        description: |-
+          Items is the list of Namespace objects in the list.
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+        items:
+          $ref: '#/definitions/v1.Namespace'
+        type: array
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/v1.ListMeta'
+        description: |-
+          Standard list metadata.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
+    type: object
+  v1.NamespacePhase:
+    enum:
+    - Active
+    - Terminating
+    type: string
+    x-enum-varnames:
+    - NamespaceActive
+    - NamespaceTerminating
+  v1.NamespaceSpec:
+    properties:
+      finalizers:
+        description: |-
+          Finalizers is an opaque list of values that must be empty to permanently remove object from storage.
+          More info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/
+          +optional
+        items:
+          $ref: '#/definitions/v1.FinalizerName'
+        type: array
+    type: object
+  v1.NamespaceStatus:
+    properties:
+      conditions:
+        description: |-
+          Represents the latest available observations of a namespace's current state.
+          +optional
+          +patchMergeKey=type
+          +patchStrategy=merge
+        items:
+          $ref: '#/definitions/v1.NamespaceCondition'
+        type: array
+      phase:
+        allOf:
+        - $ref: '#/definitions/v1.NamespacePhase'
+        description: |-
+          Phase is the current lifecycle phase of the namespace.
+          More info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/
+          +optional
     type: object
   v1.NodeAffinity:
     properties:
@@ -3703,44 +3897,6 @@ definitions:
           +optional
         type: string
     type: object
-  v1.Scale:
-    properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        allOf:
-        - $ref: '#/definitions/v1.ObjectMeta'
-        description: |-
-          Standard object metadata; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata.
-          +optional
-      spec:
-        allOf:
-        - $ref: '#/definitions/v1.ScaleSpec'
-        description: |-
-          spec defines the behavior of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status.
-          +optional
-      status:
-        allOf:
-        - $ref: '#/definitions/v1.ScaleStatus'
-        description: |-
-          status is the current status of the scale. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status. Read-only.
-          +optional
-    type: object
   v1.ScaleIOVolumeSource:
     properties:
       fsType:
@@ -4804,6 +4960,38 @@ info:
   title: Kubernetes API
   version: "1.0"
 paths:
+  /api/v1/namespaces:
+    get:
+      description: Return list of namespace.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.NamespaceList'
+      summary: Get the List of namespace.
+      tags:
+      - namespace
+  /api/v1/namespaces/{name}:
+    get:
+      description: Return namespace.
+      parameters:
+      - description: Namespace name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Namespace'
+      summary: Get namespace.
+      tags:
+      - namespace
   /apis/apps/v1/{namespace}/deployments:
     get:
       description: Return list of deployment.
@@ -4820,7 +5008,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.DeploymentListResponse'
+            items:
+              $ref: '#/definitions/deployment.ListResponse'
+            type: array
       summary: Get the List of default namespace deployment.
       tags:
       - deployment
@@ -4841,10 +5031,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        default:
+          description: ""
           schema:
-            $ref: '#/definitions/controller.DeleteDeploymentResponse'
+            type: boolean
       summary: Delete deployment
       tags:
       - deployment
@@ -4868,7 +5058,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.DeploymentByNameResponse'
+            $ref: '#/definitions/deployment.GetDeploymentResponse'
       summary: Get deployment by name.
       tags:
       - deployment
@@ -4897,7 +5087,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.ScaleDeploymentResponse'
+            $ref: '#/definitions/deployment.ScaleDeploymentResponse'
       summary: Update Deployment Replica
       tags:
       - deployment
@@ -4921,7 +5111,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.ScaleDeploymentResponse'
+            $ref: '#/definitions/deployment.ScaleDeploymentResponse'
       summary: Scale deployment
       tags:
       - deployment
